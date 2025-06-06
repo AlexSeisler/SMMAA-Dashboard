@@ -1,6 +1,5 @@
 // frontend/src/components/ClientSwitcher.jsx
 import React from "react";
-
 const clients = [
   { id: "redrose_001", name: "Red Rose Media" },
   { id: "columbia_001", name: "Columbia Borough" }
