@@ -1,0 +1,16 @@
+# dependencies
+node_modules/
+.env
+.env.*
+dist/
+
+# system
+.DS_Store
+*.log
+.vscode/
+
+# builds
+frontend/build/
+frontend/dist/
+backend/__pycache__/
+backend/.pytest_cache/
