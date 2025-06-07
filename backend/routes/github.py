@@ -28,3 +28,27 @@ async def github_contents(
             raise HTTPException(status_code=response.status_code, detail=response.text)
 
         return response.json()
+
+
+@router.get("/raw")
+async def github_raw(
+    path: str,
+    owner: str = "AlexSeisler",
+    repo: str = "SMMAA-Dashboard"
+):
+    if not GITHUB_TOKEN:
+        raise HTTPException(status_code=500, detail="GitHub token not set in environment.")
+
+    url = f"https://raw.githubusercontent.com/{owner}/{repo}/main/{path}"
+    headers = {
+        "Authorization": f"Bearer {GITHUB_TOKEN}",
+        "Accept": "application/vnd.github+json"
+    }
+
+    async with httpx.AsyncClient() as client:
+        response = await client.get(url, headers=headers)
+
+        if response.status_code != 200:
+            raise HTTPException(status_code=response.status_code, detail=response.text)
+
+        return {"path": path, "content": response.text}
