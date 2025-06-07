@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-
+from dotenv import load_dotenv
+load_dotenv()
 from routes import tasks, files, webhooks, agents, github  # ✅ include GitHub
 
 def create_app():

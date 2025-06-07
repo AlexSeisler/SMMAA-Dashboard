@@ -1,15 +1,17 @@
 from fastapi import APIRouter, HTTPException
 import httpx
 import os
-from dotenv import load_dotenv
 
-load_dotenv()
 router = APIRouter()
 
 GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN")
 
 @router.get("/contents")
-async def github_contents(owner: str, repo: str, path: str):
+async def github_contents(
+    path: str,
+    owner: str = "AlexSeisler",
+    repo: str = "SMMAA-Dashboard"
+):
     if not GITHUB_TOKEN:
         raise HTTPException(status_code=500, detail="GitHub token not set in environment.")
 
