@@ -1,1 +1,8 @@
-// Placeholder for requirements.txt
+fastapi==0.110.1
+uvicorn[standard]==0.29.0
+httpx==0.27.0
+python-dotenv==1.0.1
+pydantic==2.7.1
+typing-extensions==4.11.0
+psycopg2-binary==2.9.9
+sqlalchemy==2.0.30

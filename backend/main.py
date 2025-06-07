@@ -1,9 +1,7 @@
-# backend/main.py
-
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from routes import tasks, files, webhooks, agents
+from routes import tasks, files, webhooks, agents, github  # ✅ include GitHub
 
 def create_app():
     app = FastAPI(
@@ -31,7 +29,7 @@ def create_app():
     app.include_router(files.router, prefix="/files", tags=["Files"])
     app.include_router(webhooks.router, prefix="/webhook", tags=["Webhooks"])
     app.include_router(agents.router, prefix="/agents", tags=["Agents"])
-    
+    app.include_router(github.router, prefix="/github", tags=["GitHub"])  # ✅ add GitHub
 
     return app
 
