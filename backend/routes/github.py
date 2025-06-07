@@ -1,7 +1,9 @@
 from fastapi import APIRouter, HTTPException
 import httpx
 import os
+from dotenv import load_dotenv
 
+load_dotenv()
 router = APIRouter()
 
 GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN")
