@@ -68,8 +68,63 @@ async def commit_to_repo(
     agent_id: str = Body(None),
     task_id: str = Body(None)
 ):
-    # TODO: Implement full GitHub commit logic via tree objects + create commit + update ref
-    return {"status": "placeholder", "files": [f["path"] for f in files]}
+    async with httpx.AsyncClient() as client:
+        # Step 1: Get latest commit SHA on branch
+        ref_url = f"{GITHUB_API_BASE}/repos/{owner}/{repo}/git/ref/heads/{branch}"
+        ref_res = await client.get(ref_url, headers=HEADERS)
+        if ref_res.status_code != 200:
+            raise HTTPException(status_code=ref_res.status_code, detail=ref_res.text)
+        latest_commit_sha = ref_res.json()["object"]["sha"]
+
+        # Step 2: Get base tree SHA
+        commit_url = f"{GITHUB_API_BASE}/repos/{owner}/{repo}/git/commits/{latest_commit_sha}"
+        commit_res = await client.get(commit_url, headers=HEADERS)
+        base_tree_sha = commit_res.json()["tree"]["sha"]
+
+        # Step 3: Create new blobs for each file
+        blob_shas = []
+        for f in files:
+            blob_res = await client.post(
+                f"{GITHUB_API_BASE}/repos/{owner}/{repo}/git/blobs",
+                headers=HEADERS,
+                json={"content": f["content"], "encoding": "utf-8"}
+            )
+            blob_shas.append({
+                "path": f["path"],
+                "mode": "100644",
+                "type": "blob",
+                "sha": blob_res.json()["sha"]
+            })
+
+        # Step 4: Create new tree
+        tree_res = await client.post(
+            f"{GITHUB_API_BASE}/repos/{owner}/{repo}/git/trees",
+            headers=HEADERS,
+            json={"base_tree": base_tree_sha, "tree": blob_shas}
+        )
+        new_tree_sha = tree_res.json()["sha"]
+
+        # Step 5: Create commit
+        commit_payload = {
+            "message": message,
+            "tree": new_tree_sha,
+            "parents": [latest_commit_sha]
+        }
+        commit_res = await client.post(
+            f"{GITHUB_API_BASE}/repos/{owner}/{repo}/git/commits",
+            headers=HEADERS,
+            json=commit_payload
+        )
+        new_commit_sha = commit_res.json()["sha"]
+
+        # Step 6: Update ref
+        update_res = await client.patch(
+            f"{GITHUB_API_BASE}/repos/{owner}/{repo}/git/refs/heads/{branch}",
+            headers=HEADERS,
+            json={"sha": new_commit_sha}
+        )
+
+        return {"commit": new_commit_sha, "status": "committed", "files": [f["path"] for f in files]}
 
 # --------------------- Branch ---------------------
 @router.post("/repo/branch")
@@ -86,8 +141,18 @@ async def create_branch(owner: str = OWNER, repo: str = REPO, new_branch: str = 
 # --------------------- Init / Scaffold ---------------------
 @router.post("/repo/init")
 async def init_file_scaffold(owner: str = OWNER, repo: str = REPO, branch: str = Body(...), scaffold: list = Body(...)):
-    # TODO: Implement full tree creation with individual files
-    return {"status": "placeholder", "scaffold": [f["path"] for f in scaffold]}
+    message = "Init scaffold"
+    return await commit_to_repo(
+        owner=owner,
+        repo=repo,
+        message=message,
+        branch=branch,
+        files=scaffold,
+        create_pull_request=False,
+        agent_id=None,
+        task_id=None
+    )
+
 
 # --------------------- Workflow ---------------------
 @router.post("/repo/workflows/dispatch")
