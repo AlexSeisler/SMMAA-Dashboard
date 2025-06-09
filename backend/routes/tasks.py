@@ -24,23 +24,31 @@ async def create_task_legacy(task: Task):
 # OpenAPI spec-compliant
 @router.post("/create")
 async def create_task(task: dict):
+    print("📥 Received task payload:", task)
+    
     task_id = str(uuid4())
     client_id = task.get("client_id", "demo")  # TEMP fallback
+    
     query = """
         INSERT INTO tasks (id, client_id, created_by, title, description, status)
         VALUES ($1, $2, $3, $4, $5, $6)
     """
-    await execute(
-        query,
-        task_id,
-        client_id,
-        task.get("created_by"),
-        task.get("title"),
-        task.get("content"),
-        "queued"
-    )
-    return {"task_id": task_id, "status": "queued"}
+    try:
+        await execute(
+            query,
+            task_id,
+            client_id,
+            task.get("created_by"),
+            task.get("title"),
+            task.get("content"),
+            "queued"
+        )
+    except Exception as e:
+        print("❌ DB Insert Error:", str(e))
+        raise HTTPException(status_code=500, detail=f"DB Error: {str(e)}")
 
+    print("✅ Task inserted with ID:", task_id)
+    return {"task_id": task_id, "status": "queued"}
 
 @router.get("/status")
 async def get_task_status(task_id: str = Query(...)):
