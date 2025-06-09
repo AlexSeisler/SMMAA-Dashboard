@@ -1,10 +1,11 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
+from db import init_db  # ✅ Add DB pool initializer
 
 load_dotenv()
 
-from routes import tasks, files, webhooks, agents, github  # ✅ include GitHub
+from routes import tasks, files, webhooks, agents, github
 
 def create_app():
     app = FastAPI(
@@ -22,12 +23,22 @@ def create_app():
         allow_headers=["*"],
     )
 
-    # Basic health check
+    # Health check
     @app.get("/ping")
     def ping():
         return {"status": "ok"}
 
-    # ✅ Route Mounts (dual prefix where needed)
+    # On startup, initialize DB
+    @app.on_event("startup")
+    async def startup_event():
+        await init_db()
+
+    # Optional: shutdown event
+    @app.on_event("shutdown")
+    async def shutdown_event():
+        print("🛑 App is shutting down")
+
+    # Route Mounts
     app.include_router(tasks.router, prefix="/task", tags=["Tasks"])
     app.include_router(tasks.router, prefix="/tasks", tags=["Tasks"])
     app.include_router(files.router, prefix="/files", tags=["Files"])
