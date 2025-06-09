@@ -25,6 +25,7 @@ async def create_task_legacy(task: Task):
 @router.post("/create")
 async def create_task(task: dict):
     task_id = str(uuid4())
+    client_id = task.get("client_id", "demo")  # TEMP fallback
     query = """
         INSERT INTO tasks (id, client_id, created_by, title, description, status)
         VALUES ($1, $2, $3, $4, $5, $6)
@@ -32,13 +33,14 @@ async def create_task(task: dict):
     await execute(
         query,
         task_id,
-        task["client_id"],
-        task["created_by"],
+        client_id,
+        task.get("created_by"),
         task.get("title"),
         task.get("content"),
         "queued"
     )
     return {"task_id": task_id, "status": "queued"}
+
 
 @router.get("/status")
 async def get_task_status(task_id: str = Query(...)):
