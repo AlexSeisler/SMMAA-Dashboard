@@ -1,7 +1,9 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
+
 load_dotenv()
+
 from routes import tasks, files, webhooks, agents, github  # ✅ include GitHub
 
 def create_app():
@@ -25,12 +27,13 @@ def create_app():
     def ping():
         return {"status": "ok"}
 
-    # Mount route modules
+    # ✅ Route Mounts (dual prefix where needed)
+    app.include_router(tasks.router, prefix="/task", tags=["Tasks"])
     app.include_router(tasks.router, prefix="/tasks", tags=["Tasks"])
     app.include_router(files.router, prefix="/files", tags=["Files"])
     app.include_router(webhooks.router, prefix="/webhook", tags=["Webhooks"])
     app.include_router(agents.router, prefix="/agents", tags=["Agents"])
-    app.include_router(github.router, prefix="/github", tags=["GitHub"])  # ✅ add GitHub
+    app.include_router(github.router, prefix="/github", tags=["GitHub"])
 
     return app
 
