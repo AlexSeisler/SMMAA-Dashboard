@@ -2,10 +2,12 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 from db import init_db  # ✅ Add DB pool initializer
+import os
 
 load_dotenv()
 
 from routes import tasks, files, webhooks, agents, github
+
 
 def create_app():
     app = FastAPI(
@@ -31,7 +33,10 @@ def create_app():
     # On startup, initialize DB
     @app.on_event("startup")
     async def startup_event():
+        source = "Render" if "RENDER" in os.environ else "Local"
+        print(f"[DB INIT] Environment: {source}")
         await init_db()
+    
 
     # Optional: shutdown event
     @app.on_event("shutdown")
