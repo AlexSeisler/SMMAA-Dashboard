@@ -4,10 +4,10 @@ import os
 
 router = APIRouter()
 
-GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN")
+GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
+OWNER = os.getenv("GITHUB_OWNER")
+REPO = os.getenv("GITHUB_REPO")
 GITHUB_API_BASE = "https://api.github.com"
-OWNER = "AlexSeisler"
-REPO = "SMMAA-Dashboard"
 
 HEADERS = {
     "Authorization": f"Bearer {GITHUB_TOKEN}",
