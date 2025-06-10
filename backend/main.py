@@ -24,6 +24,9 @@ def create_app():
         allow_methods=["*"],
         allow_headers=["*"],
     )
+    @app.get("/")
+    def root():
+        return {"message": "SMMAA backend is live"}
 
     # Health check
     @app.get("/ping")
