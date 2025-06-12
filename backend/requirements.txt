@@ -9,3 +9,4 @@ sqlalchemy==2.0.30
 asyncpg==0.29.0
 python-dotenv==1.0.1
 python-multipart==0.0.9
+requests==2.31.0
