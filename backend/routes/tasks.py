@@ -6,12 +6,12 @@ from models import Task
 router = APIRouter()
 
 # Legacy support
-@router.get("/")
+@router.get("")
 async def list_tasks(client_id: str):
     query = "SELECT * FROM tasks WHERE client_id = $1 ORDER BY inserted_at DESC"
     return await fetch_all(query, client_id)
 
-@router.post("/")
+@router.post("")
 async def create_task_legacy(task: Task):
     task_id = str(uuid4())
     query = """
@@ -24,10 +24,10 @@ async def create_task_legacy(task: Task):
 # OpenAPI spec-compliant
 @router.post("/create")
 async def create_task(task: dict):
-    print("📥 Received task payload:", task)
+    print("📨 Received task payload:", task)
     
     task_id = str(uuid4())
-    client_id = task.get("client_id", "demo")  # TEMP fallback
+    client_id = task.get("client_id", "demo")
     
     query = """
         INSERT INTO tasks (id, client_id, created_by, title, description, status)
@@ -44,7 +44,7 @@ async def create_task(task: dict):
             "queued"
         )
     except Exception as e:
-        print("❌ DB Insert Error:", str(e))
+        print("⚠ DB Insert Error:", str(e))
         raise HTTPException(status_code=500, detail=f"DB Error: {str(e)}")
 
     print("✅ Task inserted with ID:", task_id)
