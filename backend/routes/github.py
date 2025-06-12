@@ -2,6 +2,7 @@
 
 import os
 import requests
+import urllib.parse  # <-- ADD THIS
 from fastapi import APIRouter, HTTPException, Query
 from dotenv import load_dotenv
 
@@ -19,14 +20,12 @@ HEADERS = {
     "Accept": "application/vnd.github.v3+json"
 }
 
-
-# Health check route
+# ✅ Health check route (unchanged)
 @router.get("/health")
 async def github_health():
     return {"github_status": "connected", "owner": OWNER, "repo": REPO}
 
-
-# ✅ Existing route (keep for backwards compatibility)
+# ✅ Existing tree routes (unchanged)
 @router.get("/tree")
 async def github_tree(owner: str = OWNER, repo: str = REPO, ref: str = "main", recursive: int = 1):
     url = f"{GITHUB_API}/repos/{owner}/{repo}/git/trees/{ref}?recursive={recursive}"
@@ -35,15 +34,12 @@ async def github_tree(owner: str = OWNER, repo: str = REPO, ref: str = "main", r
         raise HTTPException(status_code=response.status_code, detail=response.json())
     return response.json()
 
-
-# ✅ New Dev Agent Friendly Route — supports both agents + scanner loops
 @router.get("/repo/tree")
 async def github_repo_tree(
     owner: str = OWNER,
     repo: str = REPO,
     branch: str = "main",
     recursive: bool = Query(True)
-
 ):
     url = f"{GITHUB_API}/repos/{owner}/{repo}/git/trees/{branch}?recursive={recursive}"
     response = requests.get(url, headers=HEADERS)
@@ -51,8 +47,7 @@ async def github_repo_tree(
         raise HTTPException(status_code=response.status_code, detail=response.json())
     return response.json()
 
-
-# ✅ Repo status
+# ✅ Repo status (unchanged)
 @router.get("/repo/status")
 async def github_repo_status(owner: str = OWNER, repo: str = REPO):
     url = f"{GITHUB_API}/repos/{owner}/{repo}"
@@ -61,18 +56,20 @@ async def github_repo_status(owner: str = OWNER, repo: str = REPO):
         raise HTTPException(status_code=response.status_code, detail=response.json())
     return response.json()
 
-
-# ✅ Raw file fetch
+# 🚀 Fully patched raw file fetch:
 @router.get("/repo/file")
 async def github_file_raw(owner: str = OWNER, repo: str = REPO, path: str = "", branch: str = "main"):
-    url = f"{GITHUB_API}/repos/{owner}/{repo}/contents/{path}?ref={branch}"
+    encoded_path = urllib.parse.quote(path)  # <-- Fully URL-encode the path
+    url = f"{GITHUB_API}/repos/{owner}/{repo}/contents/{encoded_path}?ref={branch}"
     response = requests.get(url, headers=HEADERS)
     if response.status_code != 200:
         raise HTTPException(status_code=response.status_code, detail=response.json())
+    
     content = response.json()
     return {
         "path": content.get("path"),
         "size": content.get("size"),
         "encoding": content.get("encoding"),
         "content": content.get("content"),
+        "download_url": content.get("download_url")
     }
