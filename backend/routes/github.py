@@ -27,7 +27,7 @@ async def github_health():
     return {"github_status": "connected", "owner": OWNER, "repo": REPO}
 
 # ✅ Repo Status
-@router.get("/github/repo/status")
+@router.get("/repo/status")
 async def github_repo_status(owner: str = OWNER, repo: str = REPO):
     url = f"{GITHUB_API}/repos/{owner}/{repo}"
     response = requests.get(url, headers=HEADERS)
@@ -36,7 +36,7 @@ async def github_repo_status(owner: str = OWNER, repo: str = REPO):
     return response.json()
 
 # ✅ Repo Tree (recursive file listing)
-@router.get("/github/repo/tree")
+@router.get("/repo/tree")
 async def github_repo_tree(
     owner: str = OWNER,
     repo: str = REPO,
@@ -50,7 +50,7 @@ async def github_repo_tree(
     return response.json()
 
 # ✅ Raw file fetch
-@router.get("/github/raw")
+@router.get("/raw")
 async def github_raw_file(
     path: str,
     owner: str = OWNER,
@@ -76,7 +76,7 @@ async def github_raw_file(
     }
 
 # ✅ Commit to repo
-@router.post("/github/repo/commit")
+@router.post("/repo/commit")
 async def commit_to_repo(payload: dict):
     owner = payload.get("owner", OWNER)
     repo = payload.get("repo", REPO)
@@ -148,7 +148,7 @@ async def commit_to_repo(payload: dict):
     return {"status": "committed", "commit_sha": new_commit_sha}
 
 # ✅ Delete file from repo
-@router.delete("/github/repo/file")
+@router.delete("/repo/file")
 async def delete_file_from_repo(payload: dict):
     owner = payload.get("owner", OWNER)
     repo = payload.get("repo", REPO)
@@ -172,7 +172,7 @@ async def delete_file_from_repo(payload: dict):
     return {"status": "deleted"}
 
 # ✅ Create branch
-@router.post("/github/repo/branch")
+@router.post("/repo/branch")
 async def create_branch(payload: dict):
     owner = payload.get("owner", OWNER)
     repo = payload.get("repo", REPO)
@@ -198,7 +198,7 @@ async def create_branch(payload: dict):
     return {"status": "branch_created", "branch": new_branch}
 
 # ✅ Init scaffold
-@router.post("/github/repo/init")
+@router.post("/repo/init")
 async def init_file_scaffold(payload: dict):
     owner = payload.get("owner", OWNER)
     repo = payload.get("repo", REPO)
@@ -223,7 +223,7 @@ async def init_file_scaffold(payload: dict):
     return await commit_to_repo(commit_payload)
 
 # ✅ Create Webhook
-@router.post("/github/repo/hooks")
+@router.post("/repo/hooks")
 async def create_webhook(payload: dict):
     owner = payload.get("owner", OWNER)
     repo = payload.get("repo", REPO)
@@ -242,7 +242,7 @@ async def create_webhook(payload: dict):
     return {"status": "webhook_created"}
 
 # ✅ Create Deployment
-@router.post("/github/repo/deployments")
+@router.post("/repo/deployments")
 async def create_deployment(payload: dict):
     owner = payload.get("owner", OWNER)
     repo = payload.get("repo", REPO)
@@ -261,7 +261,7 @@ async def create_deployment(payload: dict):
     return {"status": "deployment_created"}
 
 # ✅ Trigger Workflow
-@router.post("/github/repo/workflows/dispatch")
+@router.post("/repo/workflows/dispatch")
 async def trigger_workflow(payload: dict):
     owner = payload.get("owner", OWNER)
     repo = payload.get("repo", REPO)
