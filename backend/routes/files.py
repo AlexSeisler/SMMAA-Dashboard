@@ -8,7 +8,7 @@ from uuid import uuid4
 router = APIRouter()
 
 # GET /files?client_id=...&task_id=...
-@router.get("/")
+@router.get("")
 async def list_files(client_id: str, task_id: str = None):
     if task_id:
         query = "SELECT * FROM files WHERE client_id = $1 AND task_id = $2 ORDER BY inserted_at DESC"
@@ -18,7 +18,7 @@ async def list_files(client_id: str, task_id: str = None):
         return await fetch_all(query, client_id)
 
 # POST /files
-@router.post("/")
+@router.post("")
 async def add_file(file: File):
     file_id = str(uuid4())
     query = """
