@@ -4,7 +4,7 @@ from fastapi import APIRouter
 
 router = APIRouter()
 
-@router.get("/status")
+@router.get("status")
 async def get_agent_status():
     return {
         "planner_bot": "online",
@@ -12,6 +12,6 @@ async def get_agent_status():
         "business_agent_v1": "connected"
     }
 
-@router.post("/ping")
+@router.post("ping")
 async def ping_agent():
     return { "pong": True }
