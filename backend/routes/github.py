@@ -42,7 +42,8 @@ async def github_repo_tree(
     owner: str = OWNER,
     repo: str = REPO,
     branch: str = "main",
-    recursive: int = 1
+    recursive: bool = Query(True)
+
 ):
     url = f"{GITHUB_API}/repos/{owner}/{repo}/git/trees/{branch}?recursive={recursive}"
     response = requests.get(url, headers=HEADERS)
