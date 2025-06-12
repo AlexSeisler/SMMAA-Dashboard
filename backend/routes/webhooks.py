@@ -6,7 +6,7 @@ from db import execute
 
 router = APIRouter()
 
-@router.post("/")
+@router.post("")
 async def receive_webhook(request: Request):
     payload = await request.json()
     
