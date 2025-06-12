@@ -73,3 +73,8 @@ async def github_file_raw(owner: str = OWNER, repo: str = REPO, path: str = "", 
         "content": content.get("content"),
         "download_url": content.get("download_url")
     }
+# ✅ Add this right below your existing github_file_raw route
+
+@router.get("/github/raw", include_in_schema=False)
+async def github_file_raw_alias(owner: str = OWNER, repo: str = REPO, path: str = "", branch: str = "main"):
+    return await github_file_raw(owner, repo, path, branch)
