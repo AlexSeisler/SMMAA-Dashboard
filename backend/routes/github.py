@@ -59,7 +59,7 @@ async def github_repo_status(owner: str = OWNER, repo: str = REPO):
 # 🚀 Fully patched raw file fetch:
 @router.get("/repo/file")
 async def github_file_raw(owner: str = OWNER, repo: str = REPO, path: str = "", branch: str = "main"):
-    encoded_path = urllib.parse.quote(path)  # <-- Fully URL-encode the path
+    encoded_path = urllib.parse.quote(path, safe="")  # <-- FULL fix: encode slashes too
     url = f"{GITHUB_API}/repos/{owner}/{repo}/contents/{encoded_path}?ref={branch}"
     response = requests.get(url, headers=HEADERS)
     if response.status_code != 200:
