@@ -1,5 +1,3 @@
-# backend/routes/github.py
-
 import os
 import requests
 import urllib.parse
@@ -30,12 +28,10 @@ async def github_health():
 @router.get("/repo/status")
 async def github_repo_status(owner: str = OWNER, repo: str = REPO):
     url = f"{GITHUB_API}/repos/{owner}/{repo}"
-    try:
-        response = requests.get(url, headers=HEADERS)
-        response.raise_for_status()
-        return response.json()
-    except requests.RequestException as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    response = requests.get(url, headers=HEADERS)
+    if response.status_code != 200:
+        raise HTTPException(status_code=response.status_code, detail=response.json())
+    return response.json()
 
 # ✅ Repo Tree (recursive file listing)
 @router.get("/repo/tree")
@@ -199,85 +195,11 @@ async def create_branch(payload: dict):
 
     return {"status": "branch_created", "branch": new_branch}
 
-# ✅ Init scaffold
-@router.post("/repo/init")
-async def init_file_scaffold(payload: dict):
-    owner = payload.get("owner", OWNER)
-    repo = payload.get("repo", REPO)
-    branch = payload.get("branch", "main")
-    scaffold = payload.get("scaffold", [])
-
-    files_payload = []
-    for file in scaffold:
-        files_payload.append({
-            "path": file["path"],
-            "content": file["content"]
-        })
-
-    commit_payload = {
-        "owner": owner,
-        "repo": repo,
-        "branch": branch,
-        "message": "Initial scaffold",
-        "files": files_payload
-    }
-
-    return await commit_to_repo(commit_payload)
-
-# ✅ Create Webhook
-@router.post("/repo/hooks")
-async def create_webhook(payload: dict):
-    owner = payload.get("owner", OWNER)
-    repo = payload.get("repo", REPO)
-    config = payload.get("config", {})
-    events = payload.get("events", [])
-
-    url = f"{GITHUB_API}/repos/{owner}/{repo}/hooks"
-    response = requests.post(url, headers=HEADERS, json={
-        "config": config,
-        "events": events
-    })
-
-    if response.status_code != 201:
+# ✅ Full repo snapshot
+@router.get("/repo/full-snapshot")
+async def github_full_snapshot(owner: str = OWNER, repo: str = REPO, branch: str = "main"):
+    url = f"{GITHUB_API}/repos/{owner}/{repo}/git/trees/{branch}?recursive=1"
+    response = requests.get(url, headers=HEADERS)
+    if response.status_code != 200:
         raise HTTPException(status_code=response.status_code, detail=response.json())
-
-    return {"status": "webhook_created"}
-
-# ✅ Create Deployment
-@router.post("/repo/deployments")
-async def create_deployment(payload: dict):
-    owner = payload.get("owner", OWNER)
-    repo = payload.get("repo", REPO)
-    ref = payload.get("ref")
-    environment = payload.get("environment", "production")
-
-    url = f"{GITHUB_API}/repos/{owner}/{repo}/deployments"
-    response = requests.post(url, headers=HEADERS, json={
-        "ref": ref,
-        "environment": environment
-    })
-
-    if response.status_code != 201:
-        raise HTTPException(status_code=response.status_code, detail=response.json())
-
-    return {"status": "deployment_created"}
-
-# ✅ Trigger Workflow
-@router.post("/repo/workflows/dispatch")
-async def trigger_workflow(payload: dict):
-    owner = payload.get("owner", OWNER)
-    repo = payload.get("repo", REPO)
-    workflow_id = payload.get("workflow_id")
-    ref = payload.get("ref", "main")
-    inputs = payload.get("inputs", {})
-
-    url = f"{GITHUB_API}/repos/{owner}/{repo}/actions/workflows/{workflow_id}/dispatches"
-    response = requests.post(url, headers=HEADERS, json={
-        "ref": ref,
-        "inputs": inputs
-    })
-
-    if response.status_code != 204:
-        raise HTTPException(status_code=response.status_code, detail=response.json())
-
-    return {"status": "workflow_triggered"}
+    return response.json()
