@@ -30,10 +30,12 @@ async def github_health():
 @router.get("/repo/status")
 async def github_repo_status(owner: str = OWNER, repo: str = REPO):
     url = f"{GITHUB_API}/repos/{owner}/{repo}"
-    response = requests.get(url, headers=HEADERS)
-    if response.status_code != 200:
-        raise HTTPException(status_code=response.status_code, detail=response.json())
-    return response.json()
+    try:
+        response = requests.get(url, headers=HEADERS)
+        response.raise_for_status()
+        return response.json()
+    except requests.RequestException as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 # ✅ Repo Tree (recursive file listing)
 @router.get("/repo/tree")
